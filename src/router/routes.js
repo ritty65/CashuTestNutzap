@@ -12,6 +12,11 @@ const routes = [
     children: [{ path: "", component: () => import("src/pages/Settings.vue") }],
   },
   {
+    path: '/nutzap',
+    component: () => import('pages/NutzapProfilePage.vue'),
+    meta: { requiresWallet: true }
+  },
+  {
     path: "/restore",
     component: () => import("layouts/FullscreenLayout.vue"),
     children: [{ path: "", component: () => import("src/pages/Restore.vue") }],

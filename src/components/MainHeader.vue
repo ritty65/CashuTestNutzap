@@ -118,9 +118,16 @@
             >Configure your Nostr profile for receiving payments.</q-item-label
           >
         </q-item-section>
-        <q-item-section side>
-          <q-icon name="arrow_forward_ios"></q-icon>
+      <q-item-section side>
+        <q-icon name="arrow_forward_ios"></q-icon>
+      </q-item-section>
+      </q-item>
+
+      <q-item to="/nutzap">
+        <q-item-section avatar>
+          <q-icon name="bolt" />
         </q-item-section>
+        <q-item-section>Nutzap</q-item-section>
       </q-item>
 
       <q-item-label header>About</q-item-label>
