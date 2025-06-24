@@ -305,13 +305,12 @@ export const useNostrStore = defineStore("nostr", {
         signer: new NDKPrivateKeySigner(bytesToHex(randomPrivateKey)),
       });
       const event = new NDKEvent(ndk);
-      ndk.connect();
       event.kind = NDKKind.EncryptedDirectMessage;
       event.content = await nip04.encrypt(randomPrivateKey, recipient, message);
       event.tags = [["p", recipient]];
       event.sign();
       try {
-        await event.publish();
+        await this.publish(await event.toNostrEvent());
         notifySuccess("NIP-04 event published");
       } catch (e) {
         console.error(e);
@@ -330,30 +329,30 @@ export const useNostrStore = defineStore("nostr", {
           `### Subscribing to NIP-04 direct messages to ${this.seedSignerPublicKey} since ${this.lastEventTimestamp}`
         );
         this.ndk.connect();
-        const sub = this.ndk.subscribe(
+        this.subscribe(
           {
             kinds: [NDKKind.EncryptedDirectMessage],
             "#p": [this.seedSignerPublicKey],
             since: this.lastEventTimestamp,
           } as NDKFilter,
-          { closeOnEose: false, groupable: false }
+          undefined,
+          (event: NDKEvent) => {
+            console.log("event");
+            nip04
+              .decrypt(
+                hexToBytes(this.seedSignerPrivateKey),
+                event.pubkey,
+                event.content
+              )
+              .then((content) => {
+                console.log("NIP-04 DM from", event.pubkey);
+                console.log("Content:", content);
+                nip04DirectMessageEvents.add(event);
+                this.lastEventTimestamp = Math.floor(Date.now() / 1000);
+                this.parseMessageForEcash(content);
+              });
+          }
         );
-        sub.on("event", (event: NDKEvent) => {
-          console.log("event");
-          nip04
-            .decrypt(
-              hexToBytes(this.seedSignerPrivateKey),
-              event.pubkey,
-              event.content
-            )
-            .then((content) => {
-              console.log("NIP-04 DM from", event.pubkey);
-              console.log("Content:", content);
-              nip04DirectMessageEvents.add(event);
-              this.lastEventTimestamp = Math.floor(Date.now() / 1000);
-              this.parseMessageForEcash(content);
-            });
-        });
       });
       try {
         nip04DirectMessageEvents = await fetchEventsPromise;
@@ -428,8 +427,7 @@ export const useNostrStore = defineStore("nostr", {
       wrapEvent.sig = await wrapEvent.sign();
 
       try {
-        randomNdk.connect();
-        await wrapEvent.publish();
+        await this.publish(await wrapEvent.toNostrEvent(), relays);
       } catch (e) {
         console.error(e);
         notifyError("Could not publish NIP-17 event");
@@ -448,21 +446,19 @@ export const useNostrStore = defineStore("nostr", {
           `### Subscribing to NIP-17 direct messages to ${this.seedSignerPublicKey} since ${since}`
         );
         this.ndk.connect();
-        const sub = this.ndk.subscribe(
+        this.subscribe(
           {
             kinds: [1059 as NDKKind],
             "#p": [this.seedSignerPublicKey],
             since: since,
           } as NDKFilter,
-          { closeOnEose: false, groupable: false }
-        );
-
-        sub.on("event", (wrapEvent: NDKEvent) => {
-          const eventLog = {
-            id: wrapEvent.id,
-            created_at: wrapEvent.created_at,
-          } as NostrEventLog;
-          if (this.nip17EventIdsWeHaveSeen.find((e) => e.id === wrapEvent.id)) {
+          undefined,
+          (wrapEvent: NDKEvent) => {
+            const eventLog = {
+              id: wrapEvent.id,
+              created_at: wrapEvent.created_at,
+            } as NostrEventLog;
+            if (this.nip17EventIdsWeHaveSeen.find((e) => e.id === wrapEvent.id)) {
             // console.log(`### Already seen NIP-17 event ${wrapEvent.id} (time: ${wrapEvent.created_at})`);
             return;
           } else {
@@ -504,13 +500,47 @@ export const useNostrStore = defineStore("nostr", {
           nip17DirectMessageEvents.add(dmEvent);
           this.lastEventTimestamp = Math.floor(Date.now() / 1000);
           this.parseMessageForEcash(content);
-        });
+          }
+        );
       });
       try {
         nip17DirectMessageEvents = await fetchEventsPromise;
       } catch (error) {
         console.error("Error fetching contact events:", error);
       }
+    },
+    publish: async function (evt: NostrEvent | NDKEvent, relays?: string[]) {
+      if (!this.ndk) {
+        throw new Error("NDK not initialized");
+      }
+      const ndkEvent = new NDKEvent(this.ndk, evt as any);
+      let relaySet;
+      if (relays && relays.length > 0) {
+        relaySet = new NDKRelaySet(new Set(relays), this.ndk);
+      }
+      return await ndkEvent.publish(relaySet);
+    },
+    subscribe: function (
+      filter: NDKFilter,
+      relays?: string[],
+      cb?: (event: NDKEvent) => void
+    ) {
+      if (!this.ndk) {
+        throw new Error("NDK not initialized");
+      }
+      let relaySet;
+      if (relays && relays.length > 0) {
+        relaySet = new NDKRelaySet(new Set(relays), this.ndk);
+      }
+      const sub = this.ndk.subscribe(
+        filter,
+        { closeOnEose: false, groupable: false },
+        relaySet
+      );
+      if (cb) {
+        sub.on("event", cb);
+      }
+      return sub;
     },
     parseMessageForEcash: async function (message: string) {
       // first check if the message can be converted to a json and then to a PaymentRequestPayload
