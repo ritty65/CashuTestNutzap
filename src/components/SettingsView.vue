@@ -602,6 +602,28 @@
       </q-list>
     </div>
 
+    <div class="q-py-sm q-px-xs text-left" on-left>
+      <q-list padding>
+        <q-item>
+          <q-item-section>
+            <q-item-label>Nostr</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item tag="label" to="/nutzap-profile" clickable>
+          <q-item-section>
+            <q-item-label>Nutzap Profile</q-item-label>
+            <q-item-label caption>
+              Configure your Nostr profile for receiving payments.
+            </q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-icon name="arrow_forward_ios"></q-icon>
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </div>
+
     <!-- HARDWARE FEATURES SECTION -->
     <div v-if="ndefSupported" class="section-divider q-my-md">
       <div class="divider-line"></div>
