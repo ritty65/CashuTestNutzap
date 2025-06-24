@@ -105,9 +105,25 @@
           }}</q-item-label>
         </q-item-section>
       </q-item>
-      <q-item-label header>{{
-        $t("MainHeader.menu.links.title")
-      }}</q-item-label>
+      <q-item>
+        <q-item-section>
+          <q-item-label>Nostr</q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item v-if="canUseNostr" tag="label" to="/nutzap-profile" clickable>
+        <q-item-section>
+          <q-item-label>Nutzap Profile</q-item-label>
+          <q-item-label caption
+            >Configure your Nostr profile for receiving payments.</q-item-label
+          >
+        </q-item-section>
+        <q-item-section side>
+          <q-icon name="arrow_forward_ios"></q-icon>
+        </q-item-section>
+      </q-item>
+
+      <q-item-label header>About</q-item-label>
       <EssentialLink
         v-for="link in essentialLinks"
         :key="link.title"
@@ -118,9 +134,10 @@
 </template>
 
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, computed } from "vue";
 import EssentialLink from "components/EssentialLink.vue";
 import { useUiStore } from "src/stores/ui";
+import { useNostrStore } from "src/stores/nostr";
 import { useI18n } from "vue-i18n";
 
 export default defineComponent({
@@ -133,6 +150,8 @@ export default defineComponent({
     const leftDrawerOpen = ref(false);
     const uiStore = useUiStore();
     const { t } = useI18n();
+    const nostrStore = useNostrStore();
+    const canUseNostr = computed(() => !!nostrStore.pubkey);
     const countdown = ref(0);
     let countdownInterval;
 
@@ -205,6 +224,7 @@ export default defineComponent({
       reload,
       countdown,
       uiStore,
+      canUseNostr,
     };
   },
 });
