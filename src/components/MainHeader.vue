@@ -105,6 +105,10 @@
           }}</q-item-label>
         </q-item-section>
       </q-item>
+      <q-item to="/nutzap">
+        <q-item-section avatar><q-icon name="bolt" /></q-item-section>
+        <q-item-section>Nutzap</q-item-section>
+      </q-item>
       <q-item-label header>{{
         $t("MainHeader.menu.links.title")
       }}</q-item-label>
