@@ -31,18 +31,66 @@
       @click="onImport"
     />
 
-    <div v-if="profile.npub" class="text-caption q-mt-md">
-      Your npub: <span class="text-mono">{{ profile.npub }}</span>
+    <div v-if="profile.npub" class="q-mt-md" style="max-width:480px; width:100%">
+      <q-input
+        v-model="hiddenNpub"
+        label="npub"
+        outlined
+        readonly
+        class="q-mb-sm"
+      >
+        <template v-slot:append>
+          <q-btn
+            flat
+            dense
+            icon="visibility"
+            class="cursor-pointer q-mt-md"
+            @click="toggleKeyVisibility"
+          ></q-btn>
+        </template>
+      </q-input>
+      <q-input
+        v-model="hiddenNsec"
+        label="nsec"
+        outlined
+        readonly
+        class="q-mb-sm"
+      >
+        <template v-slot:append>
+          <q-btn
+            flat
+            dense
+            icon="visibility"
+            class="cursor-pointer q-mt-md"
+            @click="toggleKeyVisibility"
+          ></q-btn>
+        </template>
+      </q-input>
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useNostrProfile } from 'stores/nostrProfile'
 
 const profile   = useNostrProfile()
 const nsecInput = ref('')
+const hideKeys  = ref(true)
+
+const hiddenNpub = computed(() => {
+  if (!profile.npub) return ''
+  return hideKeys.value ? '*'.repeat(profile.npub.length) : profile.npub
+})
+
+const hiddenNsec = computed(() => {
+  if (!profile.nsec) return ''
+  return hideKeys.value ? '*'.repeat(profile.nsec.length) : profile.nsec
+})
+
+function toggleKeyVisibility () {
+  hideKeys.value = !hideKeys.value
+}
 
 function onGenerate () {
   profile.generate()
