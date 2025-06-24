@@ -22,7 +22,12 @@ export const useP2PKStore = defineStore("p2pk", {
     showP2PKDialog: false,
     showP2PKData: {} as P2PKKey,
   }),
-  getters: {},
+  getters: {
+    pubKeyHex: (state) => {
+      const key = state.p2pkKeys[state.p2pkKeys.length - 1]
+      return key ? key.publicKey.substring(2) : ""
+    },
+  },
   actions: {
     haveThisKey: function (key: string) {
       return this.p2pkKeys.filter((m) => m.publicKey == key).length > 0;
