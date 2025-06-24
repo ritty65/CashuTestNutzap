@@ -10,6 +10,7 @@ import NDK, {
   NDKKind,
   NDKRelaySet,
   NDKRelay,
+  NDKSubscription,
   NDKTag,
   ProfilePointer,
 } from "@nostr-dev-kit/ndk";
@@ -144,6 +145,22 @@ export const useNostrStore = defineStore("nostr", {
     setSigner: async function (signer: NDKSigner) {
       this.signer = signer;
       this.ndk = new NDK({ signer: signer, explicitRelayUrls: this.relays });
+    },
+    async signEvent(evt: NostrEvent) {
+      const ndkEvent = new NDKEvent(this.ndk, evt)
+      await ndkEvent.sign(this.signer)
+      return ndkEvent.rawEvent()
+    },
+    async publish(evt: NostrEvent, relays?: string[]) {
+      const ndkEvent = new NDKEvent(this.ndk, evt)
+      const relaySet = relays ? new NDKRelaySet(relays.map(r => new NDKRelay(r))) : undefined
+      await ndkEvent.publish(relaySet)
+    },
+    subscribe(filter: NDKFilter, relays?: string[], cb?: (ev: NDKEvent) => void) {
+      const relaySet = relays ? new NDKRelaySet(relays.map(r => new NDKRelay(r))) : undefined
+      const sub = this.ndk.subscribe(filter, { closeOnEose: false, groupable: false }, relaySet)
+      if (cb) sub.on('event', cb)
+      return sub
     },
     signDummyEvent: async function (): Promise<NDKEvent> {
       const ndkEvent = new NDKEvent();

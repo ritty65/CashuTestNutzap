@@ -66,6 +66,26 @@
           ></q-btn>
         </template>
       </q-input>
+      <q-select
+        v-model="selectedMint"
+        :options="mints.mints.map(m => m.url)"
+        label="Mint URL"
+        outlined
+        class="q-mb-sm"
+      />
+      <q-input
+        v-model="relayList"
+        type="textarea"
+        label="Relays"
+        outlined
+        class="q-mb-sm"
+      />
+      <q-btn label="Publish profile" @click="onPublish" color="primary" class="q-mb-sm"/>
+      <q-toggle
+        label="Listen for incoming Nutzaps"
+        v-model="nutzap.listening"
+        @update:model-value="val => val ? nutzap.startListener(relayList.split('\n')) : nutzap.stopListener()"
+      />
     </div>
   </q-page>
 </template>
@@ -73,10 +93,16 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useNostrProfile } from 'stores/nostrProfile'
+import { useNutzapStore } from 'stores/nutzap'
+import { useMintsStore } from 'stores/mints'
 
 const profile   = useNostrProfile()
+const nutzap    = useNutzapStore()
+const mints     = useMintsStore()
 const nsecInput = ref('')
 const hideKeys  = ref(true)
+const selectedMint = ref('')
+const relayList    = ref('wss://relay.damus.io\nwss://nos.lol')
 
 const hiddenNpub = computed(() => {
   if (!profile.npub) return ''
@@ -104,4 +130,12 @@ function onImport () {
     alert(e.message)          // TODO replace with Quasar Notify
   }
 }
+
+async function onPublish () {
+  await nutzap.publishProfile(
+    selectedMint.value,
+    relayList.value.split('\n').map(r => r.trim()).filter(Boolean)
+  )
+}
 </script>
+
