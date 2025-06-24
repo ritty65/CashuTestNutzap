@@ -10,6 +10,7 @@ import {
 import { useMintsStore } from "./mints";
 import { useSendTokensStore } from "./sendTokensStore";
 import { useNostrStore } from "./nostr";
+import { useP2PKStore } from "./p2pk";
 import { useTokensStore } from "./tokens";
 import token from "src/js/token";
 import {
@@ -44,7 +45,8 @@ export const usePRStore = defineStore("payment-request", {
     ) {
       const nostrStore = useNostrStore();
       const mintStore = useMintsStore();
-      const tags = [["n", "17"]];
+      const p2pkStore = useP2PKStore();
+      const tags = [["n", "17"], ["p", p2pkStore.pubKeyHex]];
       const transport = [
         {
           type: PaymentRequestTransportType.NOSTR,
