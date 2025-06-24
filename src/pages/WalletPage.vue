@@ -610,6 +610,10 @@ export default {
         }
       });
     },
+
+    setWelcomeDialogSeen: function () {
+      useWelcomeStore().closeWelcome();
+    },
   },
   watch: {},
 

@@ -13,8 +13,14 @@ const routes = [
   },
   {
     path: '/nutzap',
-    component: () => import('pages/NutzapProfilePage.vue'),
-    meta: { requiresWallet: true }
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      {
+        path: '',
+        component: () => import('pages/NutzapProfilePage.vue'),
+        meta: { requiresWallet: true },
+      },
+    ],
   },
   {
     path: "/restore",
