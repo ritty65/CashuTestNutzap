@@ -117,14 +117,7 @@ export const useMintsStore = defineStore("mints", {
 
     const uiStoreGlobal: any = useUiStore();
 
-    // Watch for changes in activeMintUrl and activeUnit
-    watch([activeMintUrl, activeUnit], async () => {
-      const proofsStore = useProofsStore();
-      console.log(
-        `watcher: activeMintUrl: ${activeMintUrl.value}, activeUnit: ${activeUnit.value}`
-      );
-      await proofsStore.updateActiveProofs();
-    });
+    const watchersInitialized = ref(false);
 
     return {
       t,
@@ -140,6 +133,7 @@ export const useMintsStore = defineStore("mints", {
       showMintInfoData,
       showEditMintDialog,
       uiStoreGlobal,
+      watchersInitialized,
     };
   },
   getters: {
@@ -209,6 +203,20 @@ export const useMintsStore = defineStore("mints", {
     },
   },
   actions: {
+    initWatchers() {
+      if (this.watchersInitialized) return;
+      watch(
+        () => [this.activeMintUrl, this.activeUnit],
+        async () => {
+          const proofsStore = useProofsStore();
+          console.log(
+            `watcher: activeMintUrl: ${this.activeMintUrl}, activeUnit: ${this.activeUnit}`
+          );
+          await proofsStore.updateActiveProofs();
+        }
+      );
+      this.watchersInitialized = true;
+    },
     activeMint() {
       const mint = this.mints.find((m) => m.url === this.activeMintUrl);
       if (mint) {
@@ -326,6 +334,7 @@ export const useMintsStore = defineStore("mints", {
       force = false,
       unit: string | undefined = undefined
     ) {
+      this.initWatchers();
       const mint = this.mints.filter((m) => m.url === url)[0];
       if (mint) {
         await this.activateMint(mint, verbose, force);
@@ -340,6 +349,7 @@ export const useMintsStore = defineStore("mints", {
       }
     },
     activateUnit: async function (unit: string, verbose = false) {
+      this.initWatchers();
       if (unit === this.activeUnit) {
         return;
       }

@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    v-model="showSendTokens"
+    v-model="model"
     position="top"
     :maximized="$q.screen.lt.sm"
     backdrop-filter="blur(2px) brightness(60%)"
@@ -601,7 +601,13 @@ export default defineComponent({
     ScanIcon,
     NfcIcon,
   },
-  props: {},
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: ["update:modelValue"],
   data: function () {
     return {
       baseURL: location.protocol + "//" + location.host + location.pathname,
@@ -660,6 +666,14 @@ export default defineComponent({
     ]),
     ...mapState(usePriceStore, ["bitcoinPrice"]),
     ...mapState(useWorkersStore, ["tokenWorkerRunning"]),
+    model: {
+      get() {
+        return this.modelValue
+      },
+      set(v: boolean) {
+        this.$emit('update:modelValue', v)
+      }
+    },
     // TOKEN METHODS
     sumProofs: function () {
       let proofs = token.getProofs(token.decode(this.sendData.tokensBase64));
@@ -927,7 +941,7 @@ export default defineComponent({
     },
     deleteThisToken: function () {
       this.deleteToken(this.sendData.tokensBase64);
-      this.showSendTokens = false;
+      this.model = false;
       this.showDeleteDialog = false;
       this.clearAllWorkers();
     },

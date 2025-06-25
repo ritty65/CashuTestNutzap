@@ -75,10 +75,10 @@ export const useNPCStore = defineStore("npc", {
   actions: {
     generateNPCConnection: async function () {
       const nostrStore = useNostrStore();
-      if (!nostrStore.pubkey) {
+      if (!nostrStore.pubkeyHex) {
         return;
       }
-      const walletPublicKeyHex = nostrStore.pubkey;
+      const walletPublicKeyHex = nostrStore.pubkeyHex;
       console.log(
         "Lightning address for wallet:",
         nip19.npubEncode(walletPublicKeyHex) + "@" + this.npcDomain

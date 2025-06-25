@@ -1673,7 +1673,7 @@ export default defineComponent({
     ...mapState(useMintsStore, ["activeMintUrl", "mints", "activeProofs"]),
     ...mapState(useNPCStore, ["npcLoading"]),
     ...mapState(useNostrStore, [
-      "pubkey",
+      "pubkeyHex",
       "mintRecommendations",
       "signerType",
       "seedSignerPrivateKeyNsec",
