@@ -84,7 +84,7 @@
       <q-toggle
         label="Listen for incoming Nutzaps"
         v-model="nutzap.listening"
-        @update:model-value="val => val ? nutzap.startListener(parseRelays(relayList)) : nutzap.stopListener()"
+        @update:model-value="val => val ? nutzap.startListener(parseRelays(relayList.value)) : nutzap.stopListener()"
       />
     </div>
   </q-page>

@@ -166,8 +166,8 @@ export const useNostrStore = defineStore("nostr", {
     },
     async publish(evt: NostrEvent, relays?: string[]) {
       await this.ensureInit(relays)
-      const ndkEvent = new NDKEvent(this.ndk!, evt)
-      await ndkEvent.publish()
+      const ndkEvent = new NDKEvent(this.ndk!, evt);
+      await ndkEvent.publish(); // use connected pool only
     },
     async subscribe(
       filter: NDKFilter,
