@@ -1600,7 +1600,6 @@ import { useDexieStore } from "../stores/dexie";
 import { useReceiveTokensStore } from "../stores/receiveTokensStore";
 import { useWelcomeStore } from "src/stores/welcome";
 import { useStorageStore } from "src/stores/storage";
-import { useI18n } from "vue-i18n";
 
 export default defineComponent({
   name: "SettingsView",
