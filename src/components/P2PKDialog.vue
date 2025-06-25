@@ -92,12 +92,12 @@ export default defineComponent({
   },
   computed: {
     ...mapState(useP2PKStore, ["p2pkKeys", "showP2PKData", "showLastKey"]),
-    ...mapWritableState(useP2PKStore, []),
+    ...mapWritableState(useP2PKStore, ["showP2PKDialog"]),
     model: {
       get() {
         return this.modelValue
       },
-      set(v: boolean) {
+      set(v) {
         this.$emit('update:modelValue', v)
       }
     },

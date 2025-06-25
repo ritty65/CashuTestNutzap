@@ -648,7 +648,10 @@ export default defineComponent({
       "globalMutexLock",
       "ndefSupported",
     ]),
-    ...mapWritableState(useUiStore, ["showNumericKeyboard"]),
+    ...mapWritableState(useUiStore, [
+      "showSendTokens",
+      "showNumericKeyboard",
+    ]),
     ...mapState(useMintsStore, [
       "mints",
       "activeProofs",
@@ -670,7 +673,7 @@ export default defineComponent({
       get() {
         return this.modelValue
       },
-      set(v: boolean) {
+      set(v) {
         this.$emit('update:modelValue', v)
       }
     },

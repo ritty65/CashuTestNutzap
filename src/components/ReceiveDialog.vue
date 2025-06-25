@@ -112,6 +112,7 @@ export default defineComponent({
   computed: {
     ...mapWritableState(useUiStore, [
       "showInvoiceDetails",
+      "showReceiveDialog",
       "showReceiveEcashDrawer",
     ]),
     ...mapWritableState(useReceiveTokensStore, [
@@ -131,7 +132,7 @@ export default defineComponent({
       get() {
         return this.modelValue
       },
-      set(v: boolean) {
+      set(v) {
         this.$emit('update:modelValue', v)
       }
     },
