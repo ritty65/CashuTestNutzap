@@ -171,12 +171,12 @@ export const useNostrStore = defineStore("nostr", {
     async publish(evt: NostrEvent, relays?: string[]) {
       await this.ensureInit(relays)
       const ndkEvent = new NDKEvent(this.ndk, evt)
-      const relaySet = relays ? new NDKRelaySet(relays.map(r => new NDKRelay(r))) : undefined
+      const relaySet = relays ? new NDKRelaySet(relays.map(r => new NDKRelay(r)), this.ndk) : undefined
       await ndkEvent.publish(relaySet)
     },
     async subscribe(filter: NDKFilter, relays?: string[], cb?: (ev: NDKEvent) => void) {
       await this.ensureInit(relays)
-      const relaySet = relays ? new NDKRelaySet(relays.map(r => new NDKRelay(r))) : undefined
+      const relaySet = relays ? new NDKRelaySet(relays.map(r => new NDKRelay(r)), this.ndk) : undefined
       const sub = this.ndk.subscribe(filter, { closeOnEose: false, groupable: false }, relaySet)
       if (cb) sub.on('event', cb)
       return sub
