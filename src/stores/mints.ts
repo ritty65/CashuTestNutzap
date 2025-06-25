@@ -17,7 +17,6 @@ import { cashuDb } from "src/stores/dexie";
 import { liveQuery } from "dexie";
 import { ref, computed, watch } from "vue";
 import { useProofsStore } from "./proofs";
-import { useI18n } from "vue-i18n";
 import { i18n } from "src/boot/i18n";
 
 export type Mint = {
