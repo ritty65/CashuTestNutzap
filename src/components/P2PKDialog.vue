@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    v-model="showP2PKDialog"
+    v-model="model"
     position="top"
     backdrop-filter="blur(2px) brightness(60%)"
   >
@@ -80,12 +80,27 @@ export default defineComponent({
   components: {
     VueQrcode,
   },
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: ["update:modelValue"],
   data: function () {
     return {};
   },
   computed: {
     ...mapState(useP2PKStore, ["p2pkKeys", "showP2PKData", "showLastKey"]),
-    ...mapWritableState(useP2PKStore, ["showP2PKDialog"]),
+    ...mapWritableState(useP2PKStore, []),
+    model: {
+      get() {
+        return this.modelValue
+      },
+      set(v: boolean) {
+        this.$emit('update:modelValue', v)
+      }
+    },
   },
   methods: {
     ...mapActions(useP2PKStore, ["generateKeypair", "showKeyDetails"]),

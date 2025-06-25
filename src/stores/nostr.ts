@@ -59,7 +59,7 @@ export enum SignerType {
 export const useNostrStore = defineStore("nostr", {
   state: () => ({
     connected: false,
-    pubkey: useLocalStorage<string>("cashu.ndk.pubkey", ""),
+    pubkeyHex: useLocalStorage<string>("cashu.ndk.pubkey", ""),
     relays: useSettingsStore().defaultNostrRelays,
     ndk: {} as NDK,
     signerType: useLocalStorage<SignerType>(
@@ -82,7 +82,6 @@ export const useNostrStore = defineStore("nostr", {
       ""
     ),
     seedSigner: {} as NDKPrivateKeySigner,
-    seedSignerPrivateKeyNsec: "",
     privateKeySigner: {} as NDKPrivateKeySigner,
     signer: {} as NDKSigner,
     mintRecommendations: useLocalStorage<MintRecommendation[]>(
@@ -106,7 +105,7 @@ export const useNostrStore = defineStore("nostr", {
     },
     nprofile: (state) => {
       const profile: ProfilePointer = {
-        pubkey: state.pubkey,
+        pubkey: state.pubkeyHex,
         relays: state.relays,
       };
       return nip19.nprofileEncode(profile);
@@ -120,6 +119,23 @@ export const useNostrStore = defineStore("nostr", {
     },
   },
   actions: {
+    async ensureInit(relays?: string[]) {
+      if (!this.connected) {
+        await this.initSignerIfNotSet();
+        this.ndk = new NDK({
+          explicitRelayUrls: relays ?? this.relays,
+          signer: this.signer,
+        });
+        await this.ndk.connect();
+        this.connected = true;
+        if (!this.pubkeyHex && this.signer && (this.signer as any).user) {
+          try {
+            const user = await (this.signer as any).user();
+            if (user?.pubkey) this.pubkeyHex = user.pubkey;
+          } catch {}
+        }
+      }
+    },
     initNdkReadOnly: function () {
       this.ndk = new NDK({ explicitRelayUrls: this.relays });
       this.ndk.connect();
@@ -147,16 +163,19 @@ export const useNostrStore = defineStore("nostr", {
       this.ndk = new NDK({ signer: signer, explicitRelayUrls: this.relays });
     },
     async signEvent(evt: NostrEvent) {
+      await this.ensureInit();
       const ndkEvent = new NDKEvent(this.ndk, evt)
       await ndkEvent.sign(this.signer)
       return ndkEvent.rawEvent()
     },
     async publish(evt: NostrEvent, relays?: string[]) {
+      await this.ensureInit(relays)
       const ndkEvent = new NDKEvent(this.ndk, evt)
       const relaySet = relays ? new NDKRelaySet(relays.map(r => new NDKRelay(r))) : undefined
       await ndkEvent.publish(relaySet)
     },
-    subscribe(filter: NDKFilter, relays?: string[], cb?: (ev: NDKEvent) => void) {
+    async subscribe(filter: NDKFilter, relays?: string[], cb?: (ev: NDKEvent) => void) {
+      await this.ensureInit(relays)
       const relaySet = relays ? new NDKRelaySet(relays.map(r => new NDKRelay(r))) : undefined
       const sub = this.ndk.subscribe(filter, { closeOnEose: false, groupable: false }, relaySet)
       if (cb) sub.on('event', cb)
@@ -174,7 +193,7 @@ export const useNostrStore = defineStore("nostr", {
     },
     setPubkey: function (pubkey: string) {
       console.log("Setting pubkey to", pubkey);
-      this.pubkey = pubkey;
+      this.pubkeyHex = pubkey;
     },
     checkNip07Signer: async function (): Promise<boolean> {
       const signer = new NDKNip07Signer();
@@ -280,7 +299,7 @@ export const useNostrStore = defineStore("nostr", {
       this.setPubkey(this.seedSignerPublicKey);
     },
     fetchEventsFromUser: async function () {
-      const filter: NDKFilter = { kinds: [1], authors: [this.pubkey] };
+      const filter: NDKFilter = { kinds: [1], authors: [this.pubkeyHex] };
       return await this.ndk.fetchEvents(filter);
     },
     fetchMints: async function () {
@@ -316,7 +335,7 @@ export const useNostrStore = defineStore("nostr", {
       const randomPrivateKey = generateSecretKey();
       const randomPublicKey = getPublicKey(randomPrivateKey);
       // const randomPrivateKey = hexToBytes(this.seedSignerPrivateKey);
-      // const randomPublicKey = this.pubkey;
+      // const randomPublicKey = this.pubkeyHex;
       const ndk = new NDK({
         explicitRelayUrls: this.relays,
         signer: new NDKPrivateKeySigner(bytesToHex(randomPrivateKey)),

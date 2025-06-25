@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    v-model="showReceiveDialog"
+    v-model="model"
     position="bottom"
     :maximized="$q.screen.lt.sm"
     transition-show="slide-up"
@@ -96,7 +96,13 @@ export default defineComponent({
     ReceiveEcashDrawer,
   },
   mixins: [windowMixin],
-  props: {},
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: ["update:modelValue"],
   data: function () {
     return {
       currentPage: 1,
@@ -106,7 +112,6 @@ export default defineComponent({
   computed: {
     ...mapWritableState(useUiStore, [
       "showInvoiceDetails",
-      "showReceiveDialog",
       "showReceiveEcashDrawer",
     ]),
     ...mapWritableState(useReceiveTokensStore, [
@@ -122,24 +127,32 @@ export default defineComponent({
         return true;
       }
     },
+    model: {
+      get() {
+        return this.modelValue
+      },
+      set(v: boolean) {
+        this.$emit('update:modelValue', v)
+      }
+    },
   },
   methods: {
     toggleReceiveEcashDrawer: function () {
-      this.showReceiveDialog = false;
+      this.model = false;
       this.showReceiveTokens = false;
       this.showReceiveEcashDrawer = true;
     },
     showReceiveTokensDialog: function () {
       this.receiveData.tokensBase64 = "";
       this.showReceiveTokens = true;
-      this.showReceiveDialog = false;
+      this.model = false;
     },
     showInvoiceCreateDialog: async function () {
       if (!this.canReceivePayments) {
         notifyWarning(
           this.$i18n.t("ReceiveDialog.actions.lightning.error_no_mints")
         );
-        this.showReceiveDialog = false;
+        this.model = false;
         return;
       }
       console.log("##### showInvoiceCreateDialog");
@@ -148,7 +161,7 @@ export default defineComponent({
       this.invoiceData.hash = "";
       this.invoiceData.memo = "";
       this.showInvoiceDetails = true;
-      this.showReceiveDialog = false;
+      this.model = false;
     },
     ...mapActions(useCameraStore, ["closeCamera", "showCamera"]),
   },

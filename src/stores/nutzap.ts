@@ -14,8 +14,9 @@ export const useNutzapStore = defineStore('nutzap', {
   actions: {
     async publishProfile(mintUrl: string, relays: string[]) {
       const nostr = useNostrStore()
+      await nostr.ensureInit(relays)
       const p2pk = useP2PKStore()
-      if (!nostr.pubkey || !p2pk.pubKeyHex) throw new Error('keys missing')
+      if (!nostr.pubkeyHex || !p2pk.pubKeyHex) throw new Error('keys missing')
 
       const evt = {
         kind: 10019,
@@ -35,12 +36,13 @@ export const useNutzapStore = defineStore('nutzap', {
     async startListener(relays: string[]) {
       if (this.listening) return
       const nostr = useNostrStore()
+      await nostr.ensureInit(relays)
       const p2pk = useP2PKStore()
       const filter: NDKFilter = {
         kinds: [23197],
         '#recipient': [p2pk.pubKeyHex]
       }
-      this.inboxSub = nostr.subscribe(filter, relays, async ev => {
+      this.inboxSub = await nostr.subscribe(filter, relays, async ev => {
         try {
           await this._handleToken(ev.content)
         } catch (e) {
