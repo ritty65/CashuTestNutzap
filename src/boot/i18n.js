@@ -7,7 +7,7 @@ const storedLocale =
   localStorage.getItem("cashu.language") || navigator.language || "en-US";
 
 export const i18n = createI18n({
-  legacy: false,
+  legacy: true,
   locale: storedLocale,
   fallbackLocale: "en-US",
   globalInjection: true,
