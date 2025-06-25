@@ -3,6 +3,7 @@ import { NDKSubscription, NDKFilter } from '@nostr-dev-kit/ndk'
 import { useNostrStore } from './nostr'
 import { useP2PKStore } from './p2pk'
 import { useReceiveTokensStore } from './receiveTokensStore'
+import { notifyError, notifySuccess } from '../js/notify'
 
 export const useNutzapStore = defineStore('nutzap', {
   state: () => ({
@@ -29,8 +30,13 @@ export const useNutzapStore = defineStore('nutzap', {
         content: ''
       }
       const signed = await nostr.signEvent(evt)
-      await nostr.publish(signed, relays)
-      this.profilePublishedAt = evt.created_at
+      try {
+        await nostr.publish(signed, relays)
+        this.profilePublishedAt = evt.created_at
+        notifySuccess('Profile published')
+      } catch (err: any) {
+        notifyError('Failed to publish profile: ' + err.message)
+      }
     },
 
     async startListener(relays: string[]) {
