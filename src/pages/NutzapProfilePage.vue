@@ -84,7 +84,7 @@
       <q-toggle
         label="Listen for incoming Nutzaps"
         v-model="nutzap.listening"
-        @update:model-value="val => val ? nutzap.startListener(relayList.split('\n')) : nutzap.stopListener()"
+        @update:model-value="val => val ? nutzap.startListener(parseRelays(relayList)) : nutzap.stopListener()"
       />
     </div>
   </q-page>
@@ -103,6 +103,13 @@ const nsecInput = ref('')
 const hideKeys  = ref(true)
 const selectedMint = ref('')
 const relayList    = ref('wss://relay.damus.io\nwss://nos.lol')
+
+function parseRelays(list: string) {
+  return list
+    .split('\n')
+    .map(r => r.trim())
+    .filter(Boolean)
+}
 
 const hiddenNpub = computed(() => {
   if (!profile.npub) return ''
@@ -134,7 +141,7 @@ function onImport () {
 async function onPublish () {
   await nutzap.publishProfile(
     selectedMint.value,
-    relayList.value.split('\n').map(r => r.trim()).filter(Boolean)
+    parseRelays(relayList.value)
   )
 }
 </script>

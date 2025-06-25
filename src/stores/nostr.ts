@@ -8,10 +8,6 @@ import NDK, {
   NDKPrivateKeySigner,
   NostrEvent,
   NDKKind,
-  NDKRelaySet,
-  NDKRelay,
-  NDKSubscription,
-  NDKTag,
   ProfilePointer,
 } from "@nostr-dev-kit/ndk";
 import { nip04, nip19, nip44 } from "nostr-tools";
@@ -170,14 +166,19 @@ export const useNostrStore = defineStore("nostr", {
     },
     async publish(evt: NostrEvent, relays?: string[]) {
       await this.ensureInit(relays)
-      const ndkEvent = new NDKEvent(this.ndk, evt)
-      const relaySet = relays ? new NDKRelaySet(relays.map(r => new NDKRelay(r)), this.ndk) : undefined
-      await ndkEvent.publish(relaySet)
+      const ndkEvent = new NDKEvent(this.ndk!, evt)
+      await ndkEvent.publish()
     },
-    async subscribe(filter: NDKFilter, relays?: string[], cb?: (ev: NDKEvent) => void) {
+    async subscribe(
+      filter: NDKFilter,
+      relays?: string[],
+      cb?: (ev: NDKEvent) => void
+    ) {
       await this.ensureInit(relays)
-      const relaySet = relays ? new NDKRelaySet(relays.map(r => new NDKRelay(r)), this.ndk) : undefined
-      const sub = this.ndk.subscribe(filter, { closeOnEose: false, groupable: false }, relaySet)
+      const sub = this.ndk!.subscribe(filter, {
+        closeOnEose: false,
+        groupable: false
+      })
       if (cb) sub.on('event', cb)
       return sub
     },
